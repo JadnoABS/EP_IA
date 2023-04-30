@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import os
 from random import random
 
 class InNeuron:
@@ -38,6 +37,10 @@ class Perceptron:
         self.weights = [ [ random() for i in range(n_in) ] for j in range(n_out) ]
         self.bias = [ 0.5 for i in range(n_out) ]
 
+    def read_input(self, values):
+        for value in values:
+            self.input_layer.append(value)
+
     def train(self, n_cases, in_data, expected):
         cur_data = []
         cur_exp = []
@@ -47,37 +50,32 @@ class Perceptron:
         while training:
             epoch = 0
 
-            # print("Pesos atuais:")
-            # print(self.weights)
+            print("Pesos atuais:")
+            print(self.weights)
 
             for i in range(n_cases):
                 cur_data = in_data[i]
                 cur_exp = expected[i]
                 result = self.run(cur_data)
 
-                os.system('clear')
-
                 print("Entrada:")
                 for x in range(9):
                     for z in range(7):
-                        if cur_data[7*x + z] == 1:
-                            print("#", end="")
+                        if cur_data[x + z] == 1:
+                            print("#")
                         else:
-                            print(".", end="")
-                    print('\n')
+                            print(".")
 
                 print("Resposta esperada: ")
                 print(cur_exp)
-
+                
                 print("Resultado: ")
                 print(result)
 
-                print("EPOCA: ", epoch)
-
-                for j in range(len(expected[i])):
-                    if result[j] != expected[i][j]:
+                for j in range(len(expected)):
+                    if result[j] != expected[j]:
                         for x in range(len(self.weights[j])):
-                            self.weights[j][x] += alpha * expected[i][j] * self.input_layer[x].value
+                            self.weights[j][x] += alpha * expected[j] * self.in_layer[x].value
                         epoch = 0
 
             epoch += 1
@@ -85,13 +83,13 @@ class Perceptron:
                 training = False
 
     def run(self, in_data):
-        for i, in_neuron in enumerate(self.input_layer):
+        for i, in_neuron in enumerate(self.in_layer):
             in_neuron.receive(in_data[i])
 
         response = []
 
-        for i, out_neuron in enumerate(self.output_layer):
-            values = [ inp.value for inp in self.input_layer ]
+        for i, out_neuron in enumerate(self.out_layer):
+            values = [ inp.value for inp in self.in_layer ]
             out_neuron.receive(values, self.weights[i], self.bias[i])
             response.append(out_neuron.activate())
 
@@ -111,37 +109,21 @@ in_data = [ elem[0:63] for elem in data ]
 expected = [ elem[-7:] for elem in data ]
 
 
-perceptron.train(len(data), in_data, expected)
+cur_data = in_data[0]
 
-##############################
-# TESTES #
-##############################
+for x in range(9):
+    for z in range(7):
+        if cur_data[x + z] >= 1:
+            print("#", end='')
+        else:
+            print(".", end='')
+    print("\n")
 
-def test():
-    n_cases = 7
+print(in_data)
+print(expected)
 
-    test_data = pd.read_csv('caracteres-ruido.csv', sep=',', header=None)
 
-    in_data = [ elem[0:63] for elem in test_data ]
-    expected = [ elem[-7:] for elem in test_data ]
 
-    for i in range(n_cases):
-    cur_data = in_data[i]
-    cur_exp = expected[i]
-    result = self.run(cur_data)
 
-    print("Entrada:")
-    for x in range(9):
-        for z in range(7):
-            if cur_data[7*x + z] == 1:
-                print("#", end="")
-            else:
-                print(".", end="")
-        print('\n')
 
-    print("Resposta esperada: ")
-    print(cur_exp)
-
-    print("Resultado: ")
-    print(result)
 
