@@ -56,9 +56,6 @@ class Perceptron:
         epoch = 0
         while training:
 
-            # print("Pesos atuais:")
-            # print(self.weights)
-
             for i in range(n_cases):
                 cur_data = in_data[i]
                 cur_exp = expected[i]
@@ -112,67 +109,55 @@ class Perceptron:
         return response
 ###########################################################################33
 
-##############################
-# TESTES #
-##############################
 
-def test(perceptron):
-    n_cases = 7
+class Program:
+    def run(self):
+        if len(sys.argv) > 1:
+            if sys.argv[1] == 'train':
+                perceptron = Perceptron(63, 7, True)
+                data = pd.read_csv('caracteres-limpo.csv', sep=',', header=None)
+                data = data.values
+                in_data = [ elem[0:63] for elem in data ]
+                expected = [ elem[-7:] for elem in data ]
+                perceptron.train(len(data), in_data, expected)
 
-    test_data = pd.read_csv('caracteres-ruido.csv', sep=',', header=None).values
+            elif sys.argv[1] == 'test':
+                perceptron = Perceptron(63, 7, False)
+                self.test(perceptron)
+            else:
+                print('Invalid Argument')
+        else:
+            print('You need to define a argument (train or test)')
 
-    in_data = [ elem[0:63] for elem in test_data ]
-    expected = [ elem[-7:] for elem in test_data ]
+    def test(self, perceptron):
+        n_cases = 7
 
-    for i in range(n_cases):
-        cur_data = in_data[i]
-        cur_exp = expected[i]
-        result = perceptron.run(cur_data)
+        test_data = pd.read_csv('caracteres-ruido.csv', sep=',', header=None).values
 
-        print("Entrada:")
-        for x in range(9):
-            for z in range(7):
-                if cur_data[7*x + z] == 1:
-                    print("#", end="")
-                else:
-                    print(".", end="")
-            print('\n')
+        in_data = [ elem[0:63] for elem in test_data ]
+        expected = [ elem[-7:] for elem in test_data ]
 
-        print("Resposta esperada: ")
-        print(cur_exp)
+        for i in range(n_cases):
+            cur_data = in_data[i]
+            cur_exp = expected[i]
+            result = perceptron.run(cur_data)
 
-        print("Resultado: ")
-        print(result)
+            print("Entrada:")
+            for x in range(9):
+                for z in range(7):
+                    if cur_data[7*x + z] == 1:
+                        print("#", end="")
+                    else:
+                        print(".", end="")
+                print('\n')
 
+            print("Resposta esperada: ")
+            print(cur_exp)
 
-#########################################
-# Execucao inicial
-#########################################
-
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'train':
-        perceptron = Perceptron(63, 7, True)
-        data = pd.read_csv('caracteres-limpo.csv', sep=',', header=None)
-        data = data.values
-        in_data = [ elem[0:63] for elem in data ]
-        expected = [ elem[-7:] for elem in data ]
-        perceptron.train(len(data), in_data, expected)
-
-    elif sys.argv[1] == 'test':
-        perceptron = Perceptron(63, 7, False)
-        test(perceptron)
-    else:
-        print('Invalid Argument')
-else:
-    print('You need to define a argument (train or test)')
+            print("Resultado: ")
+            print(result)
 
 
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    Program().run()
 
