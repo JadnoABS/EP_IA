@@ -60,16 +60,17 @@ class NeuralNetwork:
         # print(initial_err)
         ik = self.get_outputs_from_layer(-2)
         for i, outNeuron in enumerate(self.layers[-1]):
-            error = result[i] - expected[i]
+            error = expected[i] - result[i]
             # print(error)
             # Debugger.pause()
             # print(error)
-            outNeuron.calculate_deltas(self.rate, total_err)
-            outNeuron.update_weight(self.rate)
+            outNeuron.calculate_deltas(self.rate, error)
+            # outNeuron.update_weight()
 
         for index in range(len(self.layers) - 2, -1, -1):
             weights = np.transpose(self.get_weights_from_layer(index+1))
             error_info = self.get_errors_from_layer(index+1)
+            total_weights = self.get_total_weight_from_layer(index+1)
 
             outputs = []
 
@@ -82,12 +83,16 @@ class NeuralNetwork:
             for pos, hiddenNeuron in enumerate(self.layers[index]):
                 # print(error_info)
                 # Debugger.pause()
-                hiddenNeuron.calculate_deltas(self.rate, error_info, weights[pos])
-                try:
-                    hiddenNeuron.update_weight(self.rate)
-                except Exception as err:
-                    print(index, len(outputs))
-                    raise Exception(err)
+                hiddenNeuron.calculate_deltas(self.rate, error_info, weights[pos], total_weights)
+                # try:
+                    # hiddenNeuron.update_weight()
+                # except Exception as err:
+                    # print(index, len(outputs))
+                    # raise Exception(err)
+
+        for layer in self.layers:
+            for neuron in layer:
+                neuron.update_weight()
 
     def get_outputs_from_layer(self, index):
         outputs = [x.output for x in self.layers[index]]
@@ -100,12 +105,18 @@ class NeuralNetwork:
     def get_errors_from_layer(self, index):
         return [x.error_info for x in self.layers[index]]
 
+    def get_total_weight_from_layer(self, index):
+        result = 0
+        for weight in self.get_weights_from_layer(index):
+            result += weight
+        return result
+
     def train(self, input_array, expected, x_test, y_test):
         epoch = 0
-        while epoch < 100:
+        while epoch < 1000:
             for index in range(len(input_array)):
                 result = self.propagate(input_array[index])
-                print(input_array[index], result, expected[index])
+                # print(input_array[index], result, expected[index])
                 self.calculate_errors(result, expected[index], input_array[index])
             epoch += 1
             if epoch % 25 == 0:
