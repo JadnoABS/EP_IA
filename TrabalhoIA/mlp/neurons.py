@@ -14,8 +14,8 @@ class BaseNeuron:
     after_activation = 0
 
     def __init__(self, next_layer_size):
-        self.weights = np.array([random() for i in range(next_layer_size
-                                                              + 1 )])
+        self.weights = np.array([(random() - 0.5) * 2 for i in range(next_layer_size + 1 )])
+        self.deltas = [ 0 for _ in range(next_layer_size + 1) ]
 
     def receive(self, signals: np.core.multiarray) -> float:
         self.signals = signals
@@ -30,21 +30,22 @@ class BaseNeuron:
         if x >= 10:
             return 1
         elif x <= -10:
-            return -1
+            return 0
         return np.exp(x) / (np.exp(x) + 1)
         # return 1/(1 + np.exp(-x))
 
     def activate(self, signals: list) -> float:
         self.after_activation = self.receive(signals)
-        output = self.sigmoid(self.after_activation)
+        self.true_output = self.sigmoid(self.after_activation)
+        output = (self.true_output - 0.5) * 2
+        # output = self.true_output
         self.output = output
 
         return output
 
     def derivate_activation(self):
-        derivative = self.output * ( 1 - self.output )
-        # return derivative
-        return (derivative - 0.5) * 2
+        derivative = self.true_output * ( 1 - self.true_output )
+        return derivative
 
     def calculate_delta(self, rate, err):
         pass
@@ -58,38 +59,30 @@ class BaseNeuron:
 
 
 class HiddenNeuron(BaseNeuron):
-    def calculate_deltas(self, rate, next_layer_error, weights, total_weights):
-        self.deltas = []
-        self.error_info = 0
+    def calculate_deltas(self, rate, momentum, next_layer_error, weights, inputs):
+        self.error = 0
         for index in range(len(next_layer_error)):
-            # print(next_layer_error[index])
-            # print(weights[index])
-            # print(in_err, next_layer_error[index], weights[index])
-            self.error_info += next_layer_error[index] * (weights[index] / total_weights[index])
+            self.error += next_layer_error[index] * weights[index]
 
-        # print(in_err)
-        # self.error_info = in_err
-        # print(self.error_info)
-        in_err = self.error_info * self.derivate_activation()
+        self.error_info = self.error * self.derivate_activation()
 
-        for index, signal in enumerate(self.signals):
-            self.deltas.append(rate * in_err * signal)
-        self.deltas.append(rate * in_err)
+        for index, signal in enumerate(inputs):
+            self.deltas[index] = (rate * self.error_info * signal - (momentum * self.deltas[index]))
+        self.deltas[-1] = (rate * self.error_info - (momentum * self.deltas[-1]))
 
     def update_weight(self):
-        for index, w in enumerate(self.weights):
+        for index, w in enumerate(self.signals):
             self.weights[index] += self.deltas[index]
 
 
 class OutNeuron(BaseNeuron):
-    def calculate_deltas(self, rate, error):
-        self.deltas = []
-        self.error_info = error
-        in_err = self.error_info * self.derivate_activation()
-        for index, signal in enumerate(self.signals):
-            self.deltas.append(rate * in_err * signal)
-        self.deltas.append(rate * in_err)
+    def calculate_deltas(self, rate, momentum, error, inputs):
+        self.error = error
+        self.error_info = self.error * self.derivate_activation()
+        for index, signal in enumerate(inputs):
+            self.deltas[index] = (rate * self.error_info * signal - (momentum * self.deltas[index]))
+        self.deltas[-1] = (rate * self.error_info - (momentum * self.deltas[-1]))
 
     def update_weight(self):
-        for index, w in enumerate(self.weights):
+        for index, w in enumerate(self.signals):
             self.weights[index] += self.deltas[index]

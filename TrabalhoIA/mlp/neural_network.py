@@ -1,4 +1,5 @@
 import numpy as np
+from math import ceil
 
 from mlp.neurons import HiddenNeuron, OutNeuron
 from mlp.Debugger import Debugger
@@ -8,18 +9,23 @@ class NeuralNetwork:
     layers: list = []
     # rate = 0.2
 
-    def __init__(self, x_train, y_train, x_test, y_test, n_layers, rate):
+    def __init__(self, x_train, y_train, x_test, y_test, n_layers, rate, momentum):
 
         self.construct_layers(x_train.shape[1], y_train.shape[1], n_layers)
         self.rate = rate
+        self.momentum = momentum
 
         self.train(x_train, y_train, x_test, y_test)
 
     def construct_layers(self, n_inputs, n_outputs, n_layers):
-        self.layers = [[HiddenNeuron(n_inputs) for _ in range(n_inputs)] for
-                       _ in range(n_layers)]
+        n_hidden = ceil((n_inputs / 3) * 2)
+        self.layers = []
+        self.layers.append([HiddenNeuron(n_inputs) for _ in range(n_hidden)])
 
-        self.layers.append([OutNeuron(n_inputs) for _ in range(n_outputs)])
+        for i in range(n_layers-2):
+            self.layers.append([HiddenNeuron(n_hidden) for _ in range(n_hidden)])
+
+        self.layers.append([OutNeuron(n_hidden) for _ in range(n_outputs)])
 
     def propagate(self, inputs: list):
         # print(inputs)
@@ -61,11 +67,7 @@ class NeuralNetwork:
         ik = self.get_outputs_from_layer(-2)
         for i, outNeuron in enumerate(self.layers[-1]):
             error = expected[i] - result[i]
-            # print(error)
-            # Debugger.pause()
-            # print(error)
-            outNeuron.calculate_deltas(self.rate, error)
-            # outNeuron.update_weight()
+            outNeuron.calculate_deltas(self.rate, self.momentum, error, ik)
 
         for index in range(len(self.layers) - 2, -1, -1):
             weights = np.transpose(self.get_weights_from_layer(index+1))
@@ -81,14 +83,7 @@ class NeuralNetwork:
                 outputs = self.get_outputs_from_layer(index - 1)
 
             for pos, hiddenNeuron in enumerate(self.layers[index]):
-                # print(error_info)
-                # Debugger.pause()
-                hiddenNeuron.calculate_deltas(self.rate, error_info, weights[pos], total_weights)
-                # try:
-                    # hiddenNeuron.update_weight()
-                # except Exception as err:
-                    # print(index, len(outputs))
-                    # raise Exception(err)
+                hiddenNeuron.calculate_deltas(self.rate, self.momentum, error_info, weights[pos], outputs)
 
         for layer in self.layers:
             for neuron in layer:
@@ -113,19 +108,24 @@ class NeuralNetwork:
 
     def train(self, input_array, expected, x_test, y_test):
         epoch = 0
-        while epoch < 1000:
+        stop = False
+        while not stop:
             for index in range(len(input_array)):
                 result = self.propagate(input_array[index])
                 # print(input_array[index], result, expected[index])
                 self.calculate_errors(result, expected[index], input_array[index])
             epoch += 1
             if epoch % 25 == 0:
-                # print("Weights: \n")
-                # for layer in self.layers:
-                    # for neuron in layer:
-                        # print(neuron.weights)
+                print("Weights: \n")
+                for layer in self.layers:
+                    for neuron in layer:
+                        print(neuron.weights)
                 print("Epoch: ", epoch)
-                self.test(x_test, y_test)
+                n_err = self.test(x_test, y_test)
+                if n_err == 0:
+                    stop = True
+                # for neuron in self.layers[-1]:
+                    # print(neuron.error)
 
     def test(self, x_test, y_test):
         err = 0
@@ -146,5 +146,6 @@ class NeuralNetwork:
                 # err += 1
 
         print("Number of errors: ", err)
+        return err
 
 
