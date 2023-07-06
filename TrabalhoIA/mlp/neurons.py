@@ -67,8 +67,8 @@ class HiddenNeuron(BaseNeuron):
         self.error_info = self.error * self.derivate_activation()
 
         for index, signal in enumerate(inputs):
-            self.deltas[index] = (rate * self.error_info * signal - (momentum * self.deltas[index]))
-        self.deltas[-1] = (rate * self.error_info - (momentum * self.deltas[-1]))
+            self.deltas[index] = (rate * self.error_info * signal) - (momentum * self.deltas[index])
+        self.deltas[-1] = (rate * self.error_info) - (momentum * self.deltas[-1])
 
     def update_weight(self):
         for index, w in enumerate(self.signals):
@@ -80,8 +80,8 @@ class OutNeuron(BaseNeuron):
         self.error = error
         self.error_info = self.error * self.derivate_activation()
         for index, signal in enumerate(inputs):
-            self.deltas[index] = (rate * self.error_info * signal - (momentum * self.deltas[index]))
-        self.deltas[-1] = (rate * self.error_info - (momentum * self.deltas[-1]))
+            self.deltas[index] = (rate * self.error_info * signal) - (momentum * self.deltas[index])
+        self.deltas[-1] = (rate * self.error_info) - (momentum * self.deltas[-1])
 
     def update_weight(self):
         for index, w in enumerate(self.signals):

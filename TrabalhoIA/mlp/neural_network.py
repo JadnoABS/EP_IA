@@ -27,6 +27,12 @@ class NeuralNetwork:
 
         self.layers.append([OutNeuron(n_hidden) for _ in range(n_outputs)])
 
+        # weights = []
+        # for i, layer in enumerate(self.layers):
+            # weights.append(self.get_weights_from_layer(i))
+        # np.savetxt('initial_weights.csv', weights, delimiter=',')
+
+
     def propagate(self, inputs: list):
         # print(inputs)
         next_input = inputs
@@ -110,6 +116,8 @@ class NeuralNetwork:
         epoch = 0
         stop = False
         while not stop:
+            if epoch == 1000:
+                stop = True
             for index in range(len(input_array)):
                 result = self.propagate(input_array[index])
                 # print(input_array[index], result, expected[index])
@@ -126,6 +134,10 @@ class NeuralNetwork:
                     stop = True
                 # for neuron in self.layers[-1]:
                     # print(neuron.error)
+        # weights = []
+        # for i, layer in enumerate(self.layers):
+            # weights.append(self.get_weights_from_layer(i))
+        # np.savetxt('trained_weights.csv', weights, delimiter=',')
 
     def test(self, x_test, y_test):
         err = 0

@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # print(Y_train[0])
     # print(X_train.shape)
 
-    NN = NeuralNetwork(X_train, Y_train, X_test, Y_test, 5, 0.5, 0.7)
+    NN = NeuralNetwork(X_train, Y_train, X_test, Y_test, 5, 1, 0.2)
 
     NN.test(X_test, Y_test)
 
