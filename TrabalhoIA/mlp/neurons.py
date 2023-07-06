@@ -13,9 +13,14 @@ class BaseNeuron:
     signals = []
     after_activation = 0
 
-    def __init__(self, next_layer_size):
-        self.weights = np.array([(random() - 0.5) * 2 for i in range(next_layer_size + 1 )])
-        self.deltas = [ 0 for _ in range(next_layer_size + 1) ]
+    def __init__(self, weights=[], next_layer_size=0):
+        if next_layer_size != 0:
+            self.weights = np.random.uniform(-1, 1, size=next_layer_size + 1)
+            self.deltas = [ 0 for _ in range(next_layer_size + 1) ]
+        else:
+            self.deltas = [0 for _ in range(len(weights))]
+            self.weights = weights
+
 
     def receive(self, signals: np.core.multiarray) -> float:
         self.signals = signals
