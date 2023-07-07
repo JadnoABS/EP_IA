@@ -8,8 +8,6 @@ from mlp.Debugger import Debugger
 class NeuralNetwork:
     layers: list = []
 
-    # rate = 0.2
-
     def __init__(self, n_layers, rate,
                  momentum, x_train=np.array([]), y_train=np.array([]),
                  x_test=np.array([]), y_test=np.array([]),
@@ -49,13 +47,7 @@ class NeuralNetwork:
         self.layers.append(
             [OutNeuron(next_layer_size=n_hidden) for _ in range(n_outputs)])
 
-        # weights = []
-        # for i, layer in enumerate(self.layers):
-        # weights.append(self.get_weights_from_layer(i))
-        # np.savetxt('initial_weights.csv', weights, delimiter=',')
-
     def propagate(self, inputs: list):
-        # print(inputs)
         next_input = inputs
         for index, layer in enumerate(self.layers):
             input_arr = np.array(next_input)
@@ -63,20 +55,7 @@ class NeuralNetwork:
             for neuron in layer:
                 output = neuron.activate(input_arr)
                 next_input.append(output)
-                # print(neuron.weights)
-                # print(output)
-                # Debugger.pause()
 
-        # outputs = []
-        # for n_index, neuron in enumerate(self.layers[-1]):
-        # if next_input[n_index] > 0:
-        # neuron.output = 1
-        # outputs.append(1)
-        # else:
-        # neuron.output = -1
-        # outputs.append(-1)
-
-        # return outputs
         return next_input
 
     def calculate_initial_error(_, result, expected):
@@ -87,10 +66,8 @@ class NeuralNetwork:
         return err
 
     def calculate_errors(self, result, expected, input_array):
-        # print(result, expected)
-        # Debugger.pause()
         total_err = self.calculate_initial_error(result, expected)
-        # print(initial_err)
+
         ik = self.get_outputs_from_layer(-2)
         for i, outNeuron in enumerate(self.layers[-1]):
             error = expected[i] - result[i]
@@ -117,6 +94,8 @@ class NeuralNetwork:
             for neuron in layer:
                 neuron.update_weight()
 
+        return total_err
+
     def get_outputs_from_layer(self, index):
         outputs = [x.output for x in self.layers[index]]
         outputs.append(1)
@@ -137,28 +116,30 @@ class NeuralNetwork:
     def train(self, input_array, expected, x_test, y_test):
         epoch = 0
         stop = False
+        max_precision_epochs = 0
         while not stop:
-            if epoch == 2000:
+            if epoch == 1000:
                 stop = True
+
+            training_errors = 0
             for index in range(len(input_array)):
                 result = self.propagate(input_array[index])
-                # print(input_array[index], result, expected[index])
+                # print(self.convert_to_alphabet(result), self.convert_to_alphabet(expected[index]))
                 self.calculate_errors(result, expected[index],
                                       input_array[index])
+                if np.array(result).argmax() != np.array(expected[index]).argmax():
+                    training_errors += 1
             epoch += 1
-            if epoch % 25 == 0:
-                print("Epoch: ", epoch)
-                n_err = self.test(x_test, y_test)
-                if n_err == 0:
-                    stop = True
-
-                # for neuron in self.layers[-1]:
-                # print(neuron.error)
-
-        # weights = []
-        # for i, layer in enumerate(self.layers):
-        # weights.append(self.get_weights_from_layer(i))
-        # np.savetxt('trained_weights.csv', weights, delimiter=',')
+            # Debugger.pause()
+            print('\n', end='')
+            print("Epoch: ", epoch)
+            precision = self.test(input_array, expected)
+            if precision >= 1:
+                max_precision_epochs += 1
+            else:
+                max_precision_epochs = 0
+            if max_precision_epochs >= 5:
+                stop = True
 
     def test(self, x_test, y_test):
         err = 0
@@ -171,13 +152,26 @@ class NeuralNetwork:
                 err += 1
             total += 1
 
-            # result = np.array(results).argmax()
-            # expected = np.array(y_test[index]).argmax()
-            # print(f"Input {index}: {result} -- "
-            #       f"{expected}")
-            # if result != expected:
-            # err += 1
+        precision = 1 - (err / total)
 
         print("Number of errors: ", err)
-        print("precision: ", 1 - (err / total))
-        return err
+        print("precision: ", precision)
+        return precision
+
+    def convert_to_alphabet(self, results):
+        max_index = np.array(results).argmax()
+        match max_index:
+            case 0:
+                return 'A'
+            case 1:
+                return 'B'
+            case 2:
+                return 'C'
+            case 3:
+                return 'D'
+            case 4:
+                return 'E'
+            case 5:
+                return 'J'
+            case 6:
+                return 'K'

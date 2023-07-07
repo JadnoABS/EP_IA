@@ -11,7 +11,7 @@ class BaseNeuron:
     error = 0
     deltas = []
     signals = []
-    after_activation = 0
+    before_activation = 0
 
     def __init__(self, weights=[], next_layer_size=0):
         if next_layer_size != 0:
@@ -25,9 +25,6 @@ class BaseNeuron:
     def receive(self, signals: np.core.multiarray) -> float:
         self.signals = signals
         result = np.matrix.dot(self.weights[:-1], signals.T)
-        # print(self.weights[:-1].T, signals)
-        # print(result)
-        # result = np.matrix.dot(signals, self.weights)
         result += self.weights[-1]
         return result
 
@@ -37,13 +34,11 @@ class BaseNeuron:
         elif x <= -10:
             return 0
         return np.exp(x) / (np.exp(x) + 1)
-        # return 1/(1 + np.exp(-x))
 
     def activate(self, signals: list) -> float:
-        self.after_activation = self.receive(signals)
-        self.true_output = self.sigmoid(self.after_activation)
+        self.before_activation = self.receive(signals)
+        self.true_output = self.sigmoid(self.before_activation)
         output = (self.true_output - 0.5) * 2
-        # output = self.true_output
         self.output = output
 
         return output
