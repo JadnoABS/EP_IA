@@ -15,47 +15,23 @@ if __name__ == "__main__":
     Y_train = np.array([y_t[63:] for y_t in train])
     X_test = np.array([x_t[:63] for x_t in test])
     Y_test = np.array([y_t[63:] for y_t in test])
-    # X_train = np.array([
-    # [1, 1],
-    # [1, -1],
-    # [-1, 1],
-    # [-1, -1]
-    # ])
-    # Y_train = np.array([
-    # [-1],
-    # [1],
-    # [1],
-    # [-1]
-    # ])
-    # X_test = np.array([
-    # [1, 1],
-    # [1, -1],
-    # [-1, 1],
-    # [-1, -1]
-    # ])
-    # Y_test = np.array([
-    # [-1],
-    # [1],
-    # [1],
-    # [-1]
-    # ])
-    # print(X_train[0])
-    # print(Y_train[0])
-    # print(X_train.shape)
 
     if len(sys.argv) > 1:
         if sys.argv[1] == 'train':
             print("Começando...")
-            NN = NeuralNetwork(x_train=X_train, y_train=Y_train, x_test=X_test,
-                               y_test=Y_test, n_layers=4,
-                               rate=0.1, momentum=0.5)
+            NN = NeuralNetwork(x_train=X_train, y_train=Y_train, n_layers=3,
+                               rate=0.15, momentum=0.75,)
             SaveAndLoadMlp.save_mlp(NN, "initial")
-            NN.train(X_train, Y_train, X_test, Y_test)
+            NN.train(X_train, Y_train)
             SaveAndLoadMlp.save_mlp(NN, "final")
         elif sys.argv[1] == 'test':
             print("Começando...")
             NN = SaveAndLoadMlp.read_mlp("final")
             NN.test(X_test, Y_test)
+            for layer in NN.layers:
+                for neuron in layer:
+                    print(neuron.weights)
+
         else:
             print('Invalid Argument')
     else:
